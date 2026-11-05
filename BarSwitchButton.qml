@@ -7,7 +7,7 @@ import qs.Ui
 // the old logo button's menu role and opens the root menu.
 BarWidget {
   id: root
-  moduleName: "Xenobones.taskbarchy"
+  moduleName: "xenobones.taskbarchy"
 
   implicitWidth: button.implicitWidth
   implicitHeight: button.implicitHeight

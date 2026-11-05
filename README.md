@@ -52,7 +52,7 @@ the taskbar — put the widget in the bar's left section, where the built-in
 menu button usually sits:
 
 ```bash
-omarchy bar put Xenobones.taskbarchy --section left --index 0
+omarchy bar put xenobones.taskbarchy --section left --index 0
 ```
 
 If you had `omarchy.menu` there, remove that entry from `bar.layout.left` in
@@ -87,13 +87,13 @@ and need redoing:
 ## Update
 
 ```bash
-omarchy plugin update Xenobones.taskbarchy
+omarchy plugin update xenobones.taskbarchy
 ```
 
 ## Uninstall
 
 ```bash
-omarchy plugin remove Xenobones.taskbarchy
+omarchy plugin remove xenobones.taskbarchy
 rm -f ~/.config/omarchy/win11-dock.json   # optional: drop your dock settings
 ```
 

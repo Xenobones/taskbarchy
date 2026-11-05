@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "id": "Xenobones.taskbarchy",
+  "id": "xenobones.taskbarchy",
   "name": "Taskbarchy",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "author": "Xenobones",
   "license": "MIT",
   "description": "Windows 11 style taskbar/dock for Omarchy, exclusive with the Omarchy bar: hiding the bar brings the taskbar up with a live mirror of the bar's right-hand widgets, and a logo button in the bar brings it back. Personal fork of maximxmoroz.win11-dock; reads the same ~/.config/omarchy/win11-dock.json settings.",

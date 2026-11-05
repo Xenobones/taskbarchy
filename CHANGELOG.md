@@ -5,6 +5,18 @@ Notable changes to Taskbarchy. This project is a fork of
 
 ## [Unreleased]
 
+## [0.1.8] - 2026-11-05
+
+### Changed
+
+- Plugin id is now lowercase, `xenobones.taskbarchy` (was
+  `Xenobones.taskbarchy`). The Omarchy plugin marketplace requires
+  lowercase community ids. After updating, the installed folder is
+  `~/.config/omarchy/plugins/xenobones.taskbarchy`, and the bar layout
+  entry reads `xenobones.taskbarchy` — if you had already added the logo
+  widget, run `omarchy bar put xenobones.taskbarchy --section left --index 0`
+  again and remove the old entry.
+
 ### Docs
 
 - Replaced the upstream dock screenshots with real Taskbarchy captures: a hero
