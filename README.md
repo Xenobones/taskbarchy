@@ -119,6 +119,13 @@ with its popups, `TaskButton.qml` is one app button. The shell hot-reloads
 the entry file, but edits to the other QML files only show up after
 `omarchy restart shell`.
 
+## Disclaimer
+
+Not affiliated with or endorsed by Microsoft. "Windows" and the Windows logo
+are trademarks of Microsoft Corporation, referenced here only to describe a
+visual style. Omarchy and Quickshell are separate projects by their own
+authors.
+
 ## License
 
 MIT
