@@ -445,127 +445,23 @@ PanelWindow {
       }
     }
 
-    // Right end of the dock: battery, sound and wifi tools while the Omarchy
-    // bar is hidden, then the clock. Row positioners skip invisible items, so
-    // the group stays flush right whatever is shown.
+    // Right end of the dock: the Omarchy bar's right-hand widgets, then the
+    // clock. Widgets only load while the top bar is hidden, so they hand the
+    // taskbar the same icons and panels the bar would have shown. Row
+    // positioners skip invisible items, so the group stays flush right
+    // whatever is shown.
     Row {
       anchors { right: parent.right; rightMargin: 8; verticalCenter: parent.verticalCenter }
       spacing: 2
 
-      // Wifi: opens the same panel as the bar's network button
-      Item {
-        id: wifiTool
-        visible: win.dock.config.showBarTools && win.dock.barHidden && !win.dock.floating
-        width: win.dock.buttonSize
-        height: win.dock.buttonSize
-
-        Rectangle {
-          anchors.fill: parent
-          radius: 6
-          color: wifiMouse.pressed ? Util.alpha(win.dock.text, 0.05)
-            : wifiMouse.containsMouse ? Util.alpha(win.dock.text, 0.1)
-            : "transparent"
-          Behavior on color { ColorAnimation { duration: 120 } }
-        }
-
-        Text {
-          anchors.centerIn: parent
-          textFormat: Text.PlainText
-          text: "\uf1eb"
-          color: win.dock.wifiConnected
-            ? (wifiMouse.containsMouse ? win.dock.accent : win.dock.text)
-            : Util.alpha(win.dock.text, 0.45)
-          font.family: "monospace"
-          font.pixelSize: Math.round(win.dock.iconSize * 0.72)
-        }
-
-        MouseArea {
-          id: wifiMouse
-          anchors.fill: parent
-          hoverEnabled: true
-          onClicked: {
-            win.dismissPopups()
-            win.dock.toggleOmarchyPanel("omarchy.network")
-          }
-        }
-      }
-
-      // Sound: opens the volume panel
-      Item {
-        id: audioTool
-        visible: win.dock.config.showBarTools && win.dock.barHidden && !win.dock.floating
-        width: win.dock.buttonSize
-        height: win.dock.buttonSize
-
-        Rectangle {
-          anchors.fill: parent
-          radius: 6
-          color: audioMouse.pressed ? Util.alpha(win.dock.text, 0.05)
-            : audioMouse.containsMouse ? Util.alpha(win.dock.text, 0.1)
-            : "transparent"
-          Behavior on color { ColorAnimation { duration: 120 } }
-        }
-
-        Text {
-          anchors.centerIn: parent
-          textFormat: Text.PlainText
-          text: win.dock.audioMuted || win.dock.audioVolume <= 0 ? "\uf026"
-            : win.dock.audioVolume <= 33 ? "\uf027"
-            : "\uf028"
-          color: audioMouse.containsMouse ? win.dock.accent : win.dock.text
-          font.family: "monospace"
-          font.pixelSize: Math.round(win.dock.iconSize * 0.72)
-        }
-
-        MouseArea {
-          id: audioMouse
-          anchors.fill: parent
-          hoverEnabled: true
-          onClicked: {
-            win.dismissPopups()
-            win.dock.toggleOmarchyPanel("omarchy.audio")
-          }
-        }
-      }
-
-      // Battery: opens the power panel
-      Item {
-        id: batteryTool
-        visible: win.dock.config.showBarTools && win.dock.barHidden && !win.dock.floating
-          && win.dock.batteryPresent
-        width: win.dock.buttonSize
-        height: win.dock.buttonSize
-
-        Rectangle {
-          anchors.fill: parent
-          radius: 6
-          color: batteryMouse.pressed ? Util.alpha(win.dock.text, 0.05)
-            : batteryMouse.containsMouse ? Util.alpha(win.dock.text, 0.1)
-            : "transparent"
-          Behavior on color { ColorAnimation { duration: 120 } }
-        }
-
-        Text {
-          anchors.centerIn: parent
-          textFormat: Text.PlainText
-          text: win.dock.batteryFraction >= 0.875 ? "\uf240"
-            : win.dock.batteryFraction >= 0.625 ? "\uf241"
-            : win.dock.batteryFraction >= 0.375 ? "\uf242"
-            : win.dock.batteryFraction >= 0.125 ? "\uf243"
-            : "\uf244"
-          color: batteryMouse.containsMouse || win.dock.batteryCharging ? win.dock.accent : win.dock.text
-          font.family: "monospace"
-          font.pixelSize: Math.round(win.dock.iconSize * 0.72)
-        }
-
-        MouseArea {
-          id: batteryMouse
-          anchors.fill: parent
-          hoverEnabled: true
-          onClicked: {
-            win.dismissPopups()
-            win.dock.toggleOmarchyPanel("omarchy.power")
-          }
+      // Live mirrors of the bar's right section, in bar order. These replace
+      // the old hand-built wifi/sound/battery buttons: the real widgets carry
+      // live status, the same icons, and open the same panels anchored above
+      // the taskbar.
+      Repeater {
+        model: win.dock.mirroredBarEntries
+        delegate: BarWidgetHost {
+          dock: win.dock
         }
       }
 

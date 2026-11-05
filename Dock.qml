@@ -2,9 +2,6 @@ import QtQuick
 import Quickshell
 import Quickshell.Hyprland
 import Quickshell.Io
-import Quickshell.Networking
-import Quickshell.Services.Pipewire
-import Quickshell.Services.UPower
 import Quickshell.Wayland
 import qs.Commons
 
@@ -16,6 +13,10 @@ Item {
   property var shell: null
   property var manifest: null
   property var pluginRegistry: null
+  // Detached catalogue snapshot injected by the Omarchy shell. It contains the
+  // real bar-widget components, which the taskbar mirrors while the top bar
+  // is hidden.
+  property var barWidgetRegistry: null
 
   readonly property string configPath: Quickshell.env("HOME") + "/.config/omarchy/win11-dock.json"
 
@@ -37,8 +38,8 @@ Item {
       id: config
       // Desktop entry ids (without ".desktop"), left to right.
       property list<string> pinned: []
-      // Each pinned app owns a workspace: the first pin opens on
-      // workspaceBase, the next on workspaceBase + 1, and so on.
+      // Launch each pinned app on the next workspace that has no windows,
+      // starting at workspaceBase.
       property bool pinnedWorkspaces: true
       property int workspaceBase: 1
       property bool floating: false
@@ -99,6 +100,39 @@ Item {
   readonly property color barColor: config.transparent ? "transparent" : Util.alpha(surface, Util.clampAlpha(config.opacity))
   readonly property color popupColor: Qt.rgba(surface.r, surface.g, surface.b, 1)
   readonly property color stroke: Util.alpha(text, dark ? 0.1 : 0.14)
+
+  // ---- Bar widgets -------------------------------------------------------
+
+  // The real right-hand section of the Omarchy bar, in the same order. Each
+  // entry carries the widget component from the shell's catalogue, so the
+  // taskbar can show the exact same icons and open the exact same panels.
+  readonly property var mirroredBarEntries: {
+    var config = shell && shell.barConfig ? shell.barConfig : null
+    var right = config && config.layout && Array.isArray(config.layout.right)
+      ? config.layout.right : []
+    var catalogue = barWidgetRegistry && barWidgetRegistry.widgets
+      ? barWidgetRegistry.widgets : ({})
+    var out = []
+    for (var i = 0; i < right.length; i++) {
+      var item = right[i]
+      var id = typeof item === "string" ? item : (item && item.id ? String(item.id) : "")
+      if (!id || !catalogue[id] || !catalogue[id].component) continue
+      var settings = ({})
+      if (item && typeof item === "object") {
+        for (var key in item) {
+          if (key === "id") continue
+          settings[key] = item[key]
+        }
+      }
+      out.push({ id: id, component: catalogue[id].component, settings: settings })
+    }
+    return out
+  }
+
+  // Widgets bind to `bar` for colours, geometry, popup coordination and
+  // helper calls. This adapter supplies those while the taskbar is the host.
+  BarAdapter { id: barAdapterObject; dock: root }
+  readonly property var barAdapter: barAdapterObject
 
   // ---- App model ---------------------------------------------------------
 
@@ -224,12 +258,27 @@ Item {
     return Quickshell.iconPath(name, "application-x-executable")
   }
 
-  // Workspace a pinned app owns, or 0 when disabled / the app isn't pinned.
+  // Lowest workspace with no windows, starting at workspaceBase.
+  function nextFreeWorkspace() {
+    var used = {}
+    var values = Hyprland.workspaces.values
+    for (var i = 0; i < values.length; i++) {
+      var workspace = values[i]
+      if (workspace.id > 0 && workspace.toplevels && workspace.toplevels.values.length > 0) used[workspace.id] = true
+    }
+    var id = Math.max(1, config.workspaceBase)
+    while (used[id]) id++
+    return id
+  }
+
+  // Workspace a pinned app opens on, or 0 when disabled / the app isn't
+  // pinned. Pins don't own fixed workspaces: each launch takes the next free
+  // one, so the first app you open lands on workspaceBase and later apps fill
+  // the workspaces after it.
   function workspaceFor(info) {
     if (!info || !config.pinnedWorkspaces) return 0
-    var at = pinIndex(info)
-    if (at < 0) return 0
-    return Math.max(1, config.workspaceBase) + at
+    if (pinIndex(info) < 0) return 0
+    return nextFreeWorkspace()
   }
 
   // Hyprland 0.5x runs Lua dispatchers; older configs use the plain syntax.
@@ -374,43 +423,6 @@ Item {
     Quickshell.execDetached(["omarchy", "toggle", "bar"])
     barProbeDelay.restart()
   }
-
-  // ---- Omarchy quick settings --------------------------------------------
-
-  // The shell's audio, network and power panels answer to their own IPC
-  // targets, so the dock can open the very panels the bar buttons would,
-  // even while the bar itself is hidden.
-  function toggleOmarchyPanel(target) {
-    Quickshell.execDetached(["omarchy-shell", target, "toggle"])
-  }
-
-  // Live state for the tool buttons; the services are singletons and these
-  // bindings refresh on their own.
-  readonly property var audioSink: Pipewire.defaultAudioSink
-  readonly property bool audioMuted: !!(audioSink && audioSink.muted)
-  readonly property int audioVolume: audioSink ? Math.round(audioSink.volume * 100) : 0
-
-  readonly property var batteryDevice: UPower.displayDevice
-  readonly property bool batteryPresent: !!(batteryDevice && batteryDevice.isPresent)
-  readonly property real batteryFraction: batteryPresent
-    ? Util.clamp(batteryDevice.percentage / 100, 0, 1) : 0
-  readonly property bool batteryCharging: batteryPresent
-    && batteryDevice.state === UPowerDeviceState.Charging
-
-  // Prefer a connected wifi device; fall back to the first one so the state
-  // still reads sensibly while connecting.
-  readonly property var wifiDevice: {
-    var devices = Networking.devices ? Networking.devices.values : []
-    var fallback = null
-    for (var i = 0; i < devices.length; i++) {
-      var device = devices[i]
-      if (!device || device.type !== DeviceType.Wifi) continue
-      if (device.connected) return device
-      if (!fallback) fallback = device
-    }
-    return fallback
-  }
-  readonly property bool wifiConnected: !!(wifiDevice && wifiDevice.connected)
 
   // ---- IPC ---------------------------------------------------------------
 

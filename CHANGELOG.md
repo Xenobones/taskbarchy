@@ -3,6 +3,26 @@
 Notable changes to Taskbarchy. This project is a fork of
 [maximxmoroz.win11-dock](https://github.com/maximxmoroz/omarchy-windows-dock).
 
+## [Unreleased]
+
+## [0.1.3] - 2026-11-04
+
+### Changed
+
+- Pinned apps no longer own a fixed workspace by pin order. Each launch now
+  takes the next workspace (from `workspaceBase`) that has no windows.
+- Hiding the Omarchy bar now mirrors its whole right-hand section in the
+  taskbar: the real bar widgets (tray, network, audio, bluetooth, power,
+  monitors, agents, third-party widgets — whatever `shell.json` lists) render
+  beside the clock with live status, and clicking one opens the same panel
+  anchored above the taskbar. The previous hand-built wifi/sound/battery
+  buttons are gone; `showBarTools` still gates the feature.
+
+### Added
+
+- `BarAdapter.qml` / `BarWidgetHost.qml`: a bar-host stand-in so the shell's
+  own bar-widget components can render inside the taskbar.
+
 ## [0.1.2] - 2026-11-04
 
 ### Changed

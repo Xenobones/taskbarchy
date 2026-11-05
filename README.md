@@ -5,8 +5,9 @@ A Windows 11 style taskbar for the [Omarchy](https://omarchy.org/) shell
 
 A fork of [maximxmoroz.win11-dock](https://github.com/maximxmoroz/omarchy-windows-dock)
 (MIT) with a power button, a workspace per pinned app, an Omarchy bar toggle,
-and wifi/sound/battery tools that appear while the Omarchy bar is hidden. It
-reads the same settings file as the original, `~/.config/omarchy/win11-dock.json`.
+and a live mirror of the Omarchy bar's right-hand widgets that appears while
+the bar is hidden. It reads the same settings file as the original,
+`~/.config/omarchy/win11-dock.json`.
 
 ![preview](preview.png)
 
@@ -14,9 +15,9 @@ reads the same settings file as the original, `~/.config/omarchy/win11-dock.json
 
 - Centered (or left-aligned) icons with a Start button
 - Optional power button beside Start: click it for Shut down / Restart
-- Pinned apps each open on their own workspace (pin 1 on `workspaceBase`, pin 2 on the next, ...)
+- Pinned apps each open on their own workspace: the first app you launch takes `workspaceBase`, each later app the next workspace without windows
 - Right-side button to show/hide the Omarchy bar
-- While the Omarchy bar is hidden: wifi, sound and battery buttons beside the clock that open the same panels the bar had
+- While the Omarchy bar is hidden: the bar's right-hand widgets (tray, network, audio, bluetooth, power, and anything else you have configured) appear beside the clock — the real widgets, with live status, opening the same panels above the taskbar
 - Running apps get a small pill, the focused app a wide accent pill
 - Hover a running app for live window thumbnails; click one to focus it, ✕ to close it
 - Drag pinned icons left and right to reorder them
@@ -74,8 +75,8 @@ right-click menu on the bar edits the same file.
 | Key | Default | |
 |---|---|---|
 | `pinned` | `[]` | Desktop entry ids without `.desktop`, left to right |
-| `pinnedWorkspaces` | `true` | Launch each pinned app on a workspace of its own |
-| `workspaceBase` | `1` | Workspace of the first pin; each following pin gets the next one |
+| `pinnedWorkspaces` | `true` | Launch each pinned app on the next workspace with no windows |
+| `workspaceBase` | `1` | First workspace considered; later launches fill the ones after it |
 | `floating` | `false` | Rounded dock around the icons instead of a full-width bar |
 | `autoHide` | `false` | Slide away; touch the bottom screen edge to bring it back |
 | `alignment` | `"center"` | `"center"` or `"left"` |
@@ -90,7 +91,7 @@ right-click menu on the bar edits the same file.
 | `startIcon` | `"omarchy"` | `"omarchy"`, `"windows"`, `"arch"`, `"linux"`, `"grid"`, or any icon name / absolute image path |
 | `showClock` | `true` | Clock on the right (full-width bar only) |
 | `showBarToggle` | `true` | Button on the right that shows/hides the Omarchy bar |
-| `showBarTools` | `true` | Wifi/sound/battery buttons beside the clock while the Omarchy bar is hidden |
+| `showBarTools` | `true` | Mirror the Omarchy bar's right-hand widgets beside the clock while the bar is hidden |
 | `showPreviews` | `true` | Hover previews and tooltips |
 | `fontFamily` | `"sans-serif"` | Font for labels |
 
@@ -114,10 +115,21 @@ omarchy-shell win11-dock unpin org.gnome.Nautilus
 
 ## Development
 
-`Dock.qml` owns the config and the app model, `Taskbar.qml` is the bar window
-with its popups, `TaskButton.qml` is one app button. The shell hot-reloads
-the entry file, but edits to the other QML files only show up after
-`omarchy restart shell`.
+`Dock.qml` owns the config, the app model and the mirrored-bar-widget catalogue
+lookup, `Taskbar.qml` is the bar window with its popups, `TaskButton.qml` is one
+app button, `BarAdapter.qml` stands in for the Omarchy bar host so real bar
+widgets can render in the taskbar, and `BarWidgetHost.qml` loads one widget from
+the shell's catalogue. The shell hot-reloads the entry file, but edits to the
+other QML files only show up after `omarchy restart shell`.
+
+### Known limitations
+
+- The mirrored widgets are live instances of the shell's own bar widgets, so a
+  widget that hides itself in the bar (for example Agents before its first
+  usage scan) is hidden in the taskbar too.
+- Panel hotkeys and `omarchy-shell <widget> toggle` still route to the
+  (hidden) Omarchy bar's instance, so panels they open anchor to the top of the
+  screen. Clicking the icons in the taskbar opens panels above the taskbar.
 
 ## Changelog
 
