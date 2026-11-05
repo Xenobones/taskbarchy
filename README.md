@@ -15,7 +15,7 @@ lowers the taskbar. It reads the same settings file as the original,
 *Top: full-width taskbar following the Omarchy theme. Bottom: floating dock, and the Windows 11 dark color scheme.*
 
 - Centered (or left-aligned) icons with a Start button
-- Optional power button beside Start: click it for Shut down / Restart
+- Optional power button beside Start: Suspend, Hibernate (only when the machine supports it), Lock, Shut down, Restart — gated the same way as the Omarchy root menu
 - Pinned apps each open on their own workspace: the first app you launch takes `workspaceBase`, each later app the next workspace without windows
 - Mutually exclusive with the Omarchy bar: the switch button on the right shows the Omarchy bar and lowers the taskbar, and the Omarchy logo button Taskbarchy puts in the bar (left of your workspaces) hides the bar and raises the taskbar. Any other way of toggling the bar (`omarchy toggle bar`, settings, keybinds) swaps the two the same way
 - While the taskbar is up (bar hidden): the bar's right-hand widgets (tray, network, audio, bluetooth, power, and anything else you have configured) render beside the clock — the real widgets, with live status, opening the same panels above the taskbar

@@ -19,6 +19,9 @@ var STRINGS = {
     iconSize: "Icon size",
     startIcon: "Start icon",
     editConfig: "Open config file",
+    suspend: "Suspend",
+    hibernate: "Hibernate",
+    lock: "Lock",
     shutdown: "Shut down",
     restart: "Restart"
   },
@@ -40,6 +43,9 @@ var STRINGS = {
     iconSize: "Размер значков",
     startIcon: "Значок «Пуск»",
     editConfig: "Открыть файл настроек",
+    suspend: "Спящий режим",
+    hibernate: "Гибернация",
+    lock: "Заблокировать",
     shutdown: "Завершение работы",
     restart: "Перезагрузка"
   }

@@ -5,11 +5,16 @@ Notable changes to Taskbarchy. This project is a fork of
 
 ## [Unreleased]
 
-### Docs
+## [0.1.5] - 2026-11-05
 
-- Added a "Setting up a new machine" checklist to the README: the one-command
-  logo-button setup plus the machine-local pieces (pinned apps, Super-tap
-  binds, optional widget plugins and layer rules).
+### Added
+
+- The power button menu now offers Suspend, Hibernate and Lock alongside
+  Shut down and Restart, with the same gating the Omarchy root menu uses:
+  Hibernate appears only when hibernation is set up, and Suspend disappears
+  when suspended has been turned off in the system menu. Availability is
+  re-checked every time the menu opens.
+- Docs: a "Setting up a new machine" checklist in the README.
 
 ## [0.1.4] - 2026-11-05
 

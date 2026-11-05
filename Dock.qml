@@ -434,6 +434,50 @@ Item {
     barProbeDelay.restart()
   }
 
+  // ---- System power ------------------------------------------------------
+
+  // Same gating the Omarchy root menu uses: Hibernate only when the machine
+  // has hibernation set up (`omarchy-hibernation-available`), Suspend only
+  // while it hasn't been turned off in the system menu (`suspend-off` flag).
+  property bool hibernateAvailable: false
+  property bool suspendAvailable: true
+
+  Process {
+    id: powerProbe
+    running: true
+    command: ["bash", "-c",
+      "hib=$(omarchy-hibernation-available >/dev/null 2>&1 && echo yes || echo no); " +
+      "sus=$(omarchy-toggle-enabled suspend-off >/dev/null 2>&1 && echo off || echo on); " +
+      "echo \"$hib $sus\""]
+    stdout: SplitParser {
+      onRead: function(line) {
+        var parts = String(line).trim().split(" ")
+        root.hibernateAvailable = parts[0] === "yes"
+        root.suspendAvailable = parts[1] !== "off"
+      }
+    }
+  }
+
+  // Re-read availability; the power menu calls this on every open so the
+  // next open reflects `omarchy toggle suspend` or hibernation setup changes.
+  function probePower() {
+    powerProbe.running = true
+  }
+
+  // Suspend and hibernate match the root menu's actions verbatim; the
+  // sleep-lock service locks the session before either takes effect.
+  function suspend() {
+    Quickshell.execDetached(["systemctl", "suspend"])
+  }
+
+  function hibernate() {
+    Quickshell.execDetached(["systemctl", "hibernate"])
+  }
+
+  function lock() {
+    Quickshell.execDetached(["omarchy", "system", "lock"])
+  }
+
   // ---- IPC ---------------------------------------------------------------
 
   // omarchy-shell win11-dock <function> [args], e.g. for Hyprland keybinds.

@@ -140,10 +140,15 @@ PanelWindow {
   }
 
   function openPowerMenu(centerX) {
-    openMenu([
-      { id: "shutdown", text: tr("shutdown") },
-      { id: "restart", text: tr("restart") }
-    ], null, centerX)
+    var items = []
+    if (dock.suspendAvailable) items.push({ id: "suspend", text: tr("suspend") })
+    if (dock.hibernateAvailable) items.push({ id: "hibernate", text: tr("hibernate") })
+    items.push({ id: "lock", text: tr("lock") })
+    if (items.length > 0) items.push({ separator: true })
+    items.push({ id: "shutdown", text: tr("shutdown") })
+    items.push({ id: "restart", text: tr("restart") })
+    openMenu(items, null, centerX)
+    dock.probePower()
   }
 
   // Steppers edit the config in place and leave the menu open.
@@ -178,6 +183,9 @@ PanelWindow {
     else if (id === "alignLeft") config.alignment = config.alignment === "left" ? "center" : "left"
     else if (id === "showClock") config.showClock = !config.showClock
     else if (id === "showPreviews") config.showPreviews = !config.showPreviews
+    else if (id === "suspend") dock.suspend()
+    else if (id === "hibernate") dock.hibernate()
+    else if (id === "lock") dock.lock()
     else if (id === "shutdown") dock.shutdown()
     else if (id === "restart") dock.reboot()
     else if (id === "editConfig") Quickshell.execDetached(["omarchy-launch-editor", dock.configPath])
