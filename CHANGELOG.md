@@ -5,6 +5,12 @@ Notable changes to Taskbarchy. This project is a fork of
 
 ## [Unreleased]
 
+### Docs
+
+- Added a "Setting up a new machine" checklist to the README: the one-command
+  logo-button setup plus the machine-local pieces (pinned apps, Super-tap
+  binds, optional widget plugins and layer rules).
+
 ## [0.1.4] - 2026-11-05
 
 ### Changed

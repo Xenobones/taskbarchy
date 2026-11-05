@@ -50,6 +50,31 @@ If you had `omarchy.menu` there, remove that entry from `bar.layout.left` in
 `~/.config/omarchy/shell.json` (the root menu stays one reach away: Super,
 Super+Space, the taskbar Start button, or a right-click on the logo).
 
+## Setting up a new machine
+
+The plugin carries everything over — the bar/taskbar swap, the mirrored
+right-section widgets, the logo widget — but a few pieces are machine-local
+and need redoing:
+
+1. **Install and put the logo button in the bar** (the two commands above).
+2. **Pinned apps and dock settings**: copy `~/.config/omarchy/win11-dock.json`
+   from the old machine, or just re-pin apps there — defaults regenerate on
+   first run.
+3. **Super-tap for the root menu** (optional): add release binds to
+   `~/.config/hypr/bindings.lua` so tapping and releasing Super opens the
+   menu:
+
+   ```lua
+   o.bind("SUPER + SUPER_L", "Omarchy menu (tap Super)", "omarchy-menu toggle", { release = true })
+   o.bind("SUPER + SUPER_R", "Omarchy menu (tap Super)", "omarchy-menu toggle", { release = true })
+   ```
+
+4. **Widget plugins** (optional): the taskbar mirrors whatever that machine's
+   `bar.layout.right` lists, so install extras like `better.displays`
+   individually if you want the same icons.
+5. **Frosted background** (optional): the Hyprland layer rule from
+   [Frosted background](#frosted-background) below.
+
 ## Update
 
 ```bash
