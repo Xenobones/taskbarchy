@@ -103,6 +103,7 @@ only file it writes is its own `~/.config/omarchy/win11-dock.json`.
 | Drag sideways | Reorder a pinned app |
 | Right click on an app | App menu |
 | Right click on the bar | Dock settings |
+| Click anywhere outside a menu | Closes the menu |
 | Hover | Window previews (name tooltip when the app isn't running) |
 
 ## Configuration

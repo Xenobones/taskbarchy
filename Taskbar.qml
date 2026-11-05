@@ -675,19 +675,37 @@ PanelWindow {
 
   // ---- Right-click menu --------------------------------------------------
 
-  PopupWindow {
+  // Menu surface: a fullscreen catcher with the card as a child. This used
+  // to be an xdg popup, but popups anchored to layer-shell windows take no
+  // input grab, so no click outside the card ever dismissed it. One surface
+  // makes the whole screen the catcher while the card stays clickable, and
+  // a click on the taskbar itself — the power button included — simply
+  // closes the menu.
+  PanelWindow {
     id: menu
 
     visible: false
+    screen: win.screen
     color: "transparent"
-    anchor.window: win
-    anchor.rect.x: win.popupX(win.menuCenterX, width)
-    anchor.rect.y: -height - 8
-    implicitWidth: 320
-    implicitHeight: menuColumn.height + 8
+    anchors { top: true; bottom: true; left: true; right: true }
+    exclusionMode: ExclusionMode.Ignore
+    WlrLayershell.namespace: "win11-dock-menu"
+    WlrLayershell.layer: WlrLayer.Top
+
+    // Catches every click that misses the card.
+    MouseArea {
+      anchors.fill: parent
+      acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
+      onClicked: win.dismissPopups()
+    }
 
     Rectangle {
-      anchors.fill: parent
+      id: menuCard
+
+      x: win.popupX(win.menuCenterX, width)
+      y: parent.height - win.height - height - 8
+      width: 320
+      height: menuColumn.height + 8
       radius: 8
       color: win.dock.popupColor
       border.width: 1

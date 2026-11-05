@@ -5,6 +5,17 @@ Notable changes to Taskbarchy. This project is a fork of
 
 ## [Unreleased]
 
+## [0.1.6] - 2026-11-05
+
+### Fixed
+
+- Menus no longer stick open. The power, settings and app menu used to be an
+  xdg popup, which takes no input grab when anchored to a layer-shell
+  surface — so no click outside the card ever dismissed it. It is now drawn
+  on a fullscreen catcher surface (`win11-dock-menu`): any click that misses
+  the card closes the menu, including clicks on the taskbar and on the power
+  button itself (so the power button now toggles its menu closed).
+
 ## [0.1.5] - 2026-11-05
 
 ### Added
