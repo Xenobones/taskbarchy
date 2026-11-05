@@ -36,13 +36,30 @@ PanelWindow {
   WlrLayershell.namespace: "win11-dock"
   WlrLayershell.layer: WlrLayer.Top
 
-  // While hidden only a thin strip at the screen edge takes input. With
-  // auto-hide the strip stays in the mask when revealed too, so a pointer
-  // resting on the edge beside a floating dock doesn't make it flap.
+  // While hidden only a thin strip at the screen edge takes input. When
+  // revealed the whole bar takes input, plus the strip, so a pointer resting
+  // on the edge beside a floating dock doesn't make it flap.
+  //
+  // The geometry is explicit instead of `item: bg`: bg sits inside the sliding
+  // bar, and an animated item does not update the mask automatically. That
+  // left the surface stuck on the 2px strip, so hovering the raised bar failed
+  // and it slid back down under the pointer.
   mask: Region {
-    item: win.revealed ? bg : edgeStrip
-    Region { item: win.dock.autoHide ? edgeStrip : null }
+    id: inputMask
+    x: win.revealed && win.dock.floating ? content.x - 8 : 0
+    y: win.revealed ? 0 : win.height - 2
+    width: win.revealed && win.dock.floating ? content.width + 16 : win.width
+    height: win.revealed ? win.dock.barHeight : 2
+
+    Region {
+      x: 0
+      y: win.height - 2
+      width: win.dock.autoHide && win.revealed ? win.width : 0
+      height: 2
+    }
   }
+
+  onRevealedChanged: inputMask.changed()
 
   function tr(key) { return Strings.tr(key, lang) }
 

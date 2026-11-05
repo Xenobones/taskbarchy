@@ -2,15 +2,22 @@
   "schemaVersion": 1,
   "id": "Xenobones.taskbarchy",
   "name": "Taskbarchy",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "author": "Xenobones",
   "license": "MIT",
   "description": "Windows 11 style taskbar/dock for Omarchy, with a power button, a workspace per pinned app, an Omarchy bar toggle, and wifi/sound/battery tools that appear while the Omarchy bar is hidden. Personal fork of maximxmoroz.win11-dock; reads the same ~/.config/omarchy/win11-dock.json settings.",
-  "kinds": ["service"],
+  "kinds": [
+    "service"
+  ],
   "entryPoints": {
     "service": "Dock.qml"
   },
-  "tags": ["dock", "taskbar", "launcher", "hyprland"],
+  "tags": [
+    "dock",
+    "taskbar",
+    "launcher",
+    "hyprland"
+  ],
   "omarchy": {
     "clonedFrom": "maximxmoroz.win11-dock"
   }
