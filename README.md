@@ -99,9 +99,23 @@ rm -f ~/.config/omarchy/win11-dock.json   # optional: drop your dock settings
 
 ## Requirements
 
-Omarchy 4 (Quattro) on Hyprland. Nothing extra to install: the dock uses
-`uwsm-app`, `gtk-launch` and `gsettings`, which Omarchy already ships. The
-only file it writes is its own `~/.config/omarchy/win11-dock.json`.
+Omarchy 4 (Quattro) on Hyprland. Nothing extra to install — everything the
+dock calls ships with Omarchy or systemd:
+
+- `uwsm-app`, `gtk-launch`: launching pinned apps
+- `gsettings`: pinning and desktop-entry lookups
+- `omarchy` CLI (`toggle bar`, `system lock|shutdown|reboot`), `omarchy-menu`,
+  `omarchy-launch-editor`, `omarchy-shell`: shell integration and the power menu
+- `systemctl suspend` / `systemctl hibernate`: the power menu's sleep entries
+- `omarchy-hibernation-available`, `omarchy-toggle-enabled`: read-only checks
+  that decide whether Hibernate and Suspend are offered in the power menu
+- Hyprland IPC (through Quickshell): workspace focus and silent window moves
+
+The only file it writes is its own `~/.config/omarchy/win11-dock.json` (shared
+with the original maximxmoroz.win11-dock by design, and created with defaults
+on first run). It never touches `~/.config/omarchy/shell.json` — putting the
+logo widget into the bar is an explicit `omarchy bar put` command you run
+yourself.
 
 ## Usage
 
