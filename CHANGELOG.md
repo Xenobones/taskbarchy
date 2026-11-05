@@ -5,6 +5,13 @@ Notable changes to Taskbarchy. This project is a fork of
 
 ## [Unreleased]
 
+### Docs
+
+- Replaced the upstream dock screenshots with real Taskbarchy captures: a hero
+  shot of the taskbar mirroring the Omarchy bar's right-hand widgets, plus a
+  gallery of the floating dock, power menu, "Own workspace" app menu, and the
+  dock's right-click settings menu.
+
 ## [0.1.7] - 2026-11-05
 
 ### Added

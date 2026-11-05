@@ -12,7 +12,16 @@ lowers the taskbar. It reads the same settings file as the original,
 
 ![preview](preview.png)
 
-*Top: full-width taskbar following the Omarchy theme. Bottom: floating dock, and the Windows 11 dark color scheme.*
+*Taskbarchy with the Omarchy bar hidden: the bar's right-hand widgets — tray, displays, bluetooth, network, audio, monitors, power — mirrored live beside the clock. The logo button in the Omarchy bar swaps back.*
+
+<p align="center">
+  <img src="screens/floating_bar.png" width="22%">
+  <img src="screens/power_menu.png" width="22%">
+  <img src="screens/own_workspace.png" width="22%">
+  <img src="screens/taskbar_options.png" width="22%">
+</p>
+
+*Floating dock mode, the power menu, an app menu offering "Own workspace", and the dock's right-click settings menu.*
 
 - Centered (or left-aligned) icons with a Start button
 - Optional power button beside Start: Suspend, Hibernate (only when the machine supports it), Lock, Shut down, Restart — gated the same way as the Omarchy root menu
