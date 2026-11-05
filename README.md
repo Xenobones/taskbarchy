@@ -22,7 +22,7 @@ lowers the taskbar. It reads the same settings file as the original,
 - Running apps get a small pill, the focused app a wide accent pill
 - Hover a running app for live window thumbnails; click one to focus it, ✕ to close it
 - Drag pinned icons left and right to reorder them
-- Right-click an app: its desktop actions, new window, pin/unpin, reorder, close
+- Right-click an app: its desktop actions, new window, pin/unpin, reorder, close — plus "Own workspace" when it shares a workspace with another app, which silently moves its windows to an empty workspace
 - Right-click the bar: auto-hide, floating dock, alignment, clock, previews, transparent background, bar height, icon size and Start icon
 - Full-width taskbar or a floating rounded dock
 - Follows the Omarchy theme, or use the stock Windows 11 dark/light colors

@@ -116,6 +116,8 @@ PanelWindow {
     if (at >= 0 && at < dock.config.pinned.length - 1) items.push({ id: "moveRight", text: tr("moveRight") })
     if (info.windows.length > 0) {
       items.push({ separator: true })
+      if (dock.sharesWorkspaceWithOtherApp(info))
+        items.push({ id: "ownWorkspace", text: tr("ownWorkspace") })
       items.push({ id: "close", text: tr(info.windows.length > 1 ? "closeAll" : "close") })
     }
     openMenu(items, info, centerOf(button))
@@ -176,6 +178,7 @@ PanelWindow {
     else if (id === "unpin") dock.unpin(info)
     else if (id === "moveLeft") dock.movePin(info, -1)
     else if (id === "moveRight") dock.movePin(info, 1)
+    else if (id === "ownWorkspace") dock.moveAppToOwnWorkspace(info)
     else if (id === "close") dock.closeAll(info)
     else if (id === "autoHide") config.autoHide = !config.autoHide
     else if (id === "floating") config.floating = !config.floating

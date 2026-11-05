@@ -5,6 +5,18 @@ Notable changes to Taskbarchy. This project is a fork of
 
 ## [Unreleased]
 
+## [0.1.7] - 2026-11-05
+
+### Added
+
+- "Own workspace" in the app right-click menu. It only appears when the app
+  shares a workspace with a different app, and clicking it silently moves
+  every window of that app to the next empty workspace (from `workspaceBase`)
+  without changing keyboard focus. Workspace membership is read the way
+  Hyprland reports it to the shell (window class via the raw IPC map), and
+  windows are moved with the Lua `hl.dsp.window.move` dispatcher on Hyprland
+  0.5x+, with the classic dispatcher kept as a fallback for older versions.
+
 ## [0.1.6] - 2026-11-05
 
 ### Fixed

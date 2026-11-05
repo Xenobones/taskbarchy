@@ -271,6 +271,79 @@ Item {
     return id
   }
 
+  // The taskbar's grouping key for a toplevel: the desktop entry id when one
+  // matches, else the appId. Mirrors the grouping in rebuildAppData so
+  // "another app" means exactly "another taskbar icon".
+  function appKey(appId) {
+    if (!appId) return ""
+    var entry = lookupEntry(appId)
+    return (entry ? entry.id : appId).toLowerCase()
+  }
+
+  // The app id of a toplevel as Hyprland's workspace lists expose it: the raw
+  // IPC map carries it under `class` (and the wayland object under `appId`),
+  // while the plain `appId` property stays empty on these objects.
+  function workspaceToplevelAppId(toplevel) {
+    if (!toplevel) return ""
+    var ipc = toplevel.lastIpcObject || ({})
+    var wayland = toplevel.wayland || ({})
+    return String(ipc.class || wayland.appId || toplevel.appId || "")
+  }
+
+  // True when one of the app's windows sits on a workspace that also holds
+  // windows belonging to a different app.
+  function sharesWorkspaceWithOtherApp(info) {
+    if (!info || info.windows.length === 0) return false
+    var workspaces = Hyprland.workspaces.values
+    for (var i = 0; i < workspaces.length; i++) {
+      var workspace = workspaces[i]
+      if (workspace.id <= 0 || !workspace.toplevels) continue
+      var mine = false
+      var other = false
+      var toplevels = workspace.toplevels.values
+      for (var j = 0; j < toplevels.length; j++) {
+        var key = appKey(workspaceToplevelAppId(toplevels[j]))
+        if (!key) continue
+        if (key === info.key) mine = true
+        else other = true
+      }
+      if (mine && other) return true
+    }
+    return false
+  }
+
+  // Give the app a workspace of its own: every window moves, silently, to
+  // the next workspace with no windows. Focus stays where it is. Windows are
+  // targeted by class, one dispatch per distinct class (covers multi-window
+  // apps in one call and avoids needing per-window addresses).
+  function moveAppToOwnWorkspace(info) {
+    if (!info || info.windows.length === 0) return
+    var workspace = nextFreeWorkspace()
+    if (workspace <= 0) return
+    var windows = info.windows
+    var moved = ({})
+    for (var i = 0; i < windows.length; i++) {
+      var toplevel = windows[i]
+      if (!toplevel) continue
+      var cls = workspaceToplevelAppId(toplevel)
+      if (!cls || moved[cls]) continue
+      moved[cls] = true
+      moveWindowClassToWorkspace(cls, workspace)
+    }
+  }
+
+  // Silent (no-follow) move of every window of one class; the Lua form
+  // matches focusWorkspace's dispatcher style for this Hyprland generation.
+  function moveWindowClassToWorkspace(cls, workspace) {
+    if (!cls || !workspace) return
+    if (Hyprland.usingLua) {
+      Hyprland.dispatch("hl.dsp.window.move({ workspace = \"" + workspace
+        + "\", window = \"class:" + cls + "\", follow = false })")
+    } else {
+      Hyprland.dispatch("movetoworkspacesilent " + workspace + ",class:" + cls)
+    }
+  }
+
   // Workspace a pinned app opens on, or 0 when disabled / the app isn't
   // pinned. Pins don't own fixed workspaces: each launch takes the next free
   // one, so the first app you open lands on workspaceBase and later apps fill
