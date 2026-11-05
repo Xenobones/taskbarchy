@@ -4,9 +4,10 @@ A Windows 11 style taskbar for the [Omarchy](https://omarchy.org/) shell
 (Quickshell + Hyprland).
 
 A fork of [maximxmoroz.win11-dock](https://github.com/maximxmoroz/omarchy-windows-dock)
-(MIT) with a power button, a workspace per pinned app, an Omarchy bar toggle,
-and a live mirror of the Omarchy bar's right-hand widgets that appears while
-the bar is hidden. It reads the same settings file as the original,
+(MIT): a Windows 11 style taskbar that is mutually exclusive with the Omarchy
+bar. Hiding the bar brings the taskbar up with a live mirror of the bar's
+right-hand widgets; an Omarchy logo button in the bar brings the bar back and
+lowers the taskbar. It reads the same settings file as the original,
 `~/.config/omarchy/win11-dock.json`.
 
 ![preview](preview.png)
@@ -16,8 +17,8 @@ the bar is hidden. It reads the same settings file as the original,
 - Centered (or left-aligned) icons with a Start button
 - Optional power button beside Start: click it for Shut down / Restart
 - Pinned apps each open on their own workspace: the first app you launch takes `workspaceBase`, each later app the next workspace without windows
-- Right-side button to show/hide the Omarchy bar
-- While the Omarchy bar is hidden: the bar's right-hand widgets (tray, network, audio, bluetooth, power, and anything else you have configured) appear beside the clock — the real widgets, with live status, opening the same panels above the taskbar
+- Mutually exclusive with the Omarchy bar: the switch button on the right shows the Omarchy bar and lowers the taskbar, and the Omarchy logo button Taskbarchy puts in the bar (left of your workspaces) hides the bar and raises the taskbar. Any other way of toggling the bar (`omarchy toggle bar`, settings, keybinds) swaps the two the same way
+- While the taskbar is up (bar hidden): the bar's right-hand widgets (tray, network, audio, bluetooth, power, and anything else you have configured) render beside the clock — the real widgets, with live status, opening the same panels above the taskbar
 - Running apps get a small pill, the focused app a wide accent pill
 - Hover a running app for live window thumbnails; click one to focus it, ✕ to close it
 - Drag pinned icons left and right to reorder them
@@ -36,6 +37,18 @@ omarchy plugin add https://github.com/Xenobones/taskbarchy.git --enable
 Enabling Taskbarchy automatically disables the original
 `maximxmoroz.win11-dock` if it is installed (the manifest declares it as the
 clone source), so you won't end up with two docks.
+
+To get the logo button in the Omarchy bar — the one that swaps the bar for
+the taskbar — put the widget in the bar's left section, where the built-in
+menu button usually sits:
+
+```bash
+omarchy bar put Xenobones.taskbarchy --section left --index 0
+```
+
+If you had `omarchy.menu` there, remove that entry from `bar.layout.left` in
+`~/.config/omarchy/shell.json` (the root menu stays one reach away: Super,
+Super+Space, the taskbar Start button, or a right-click on the logo).
 
 ## Update
 
@@ -90,7 +103,7 @@ right-click menu on the bar edits the same file.
 | `startCommand` | `"omarchy-menu toggle apps"` | Shell command the Start button runs |
 | `startIcon` | `"omarchy"` | `"omarchy"`, `"windows"`, `"arch"`, `"linux"`, `"grid"`, or any icon name / absolute image path |
 | `showClock` | `true` | Clock on the right (full-width bar only) |
-| `showBarToggle` | `true` | Button on the right that shows/hides the Omarchy bar |
+| `showBarToggle` | `true` | Button on the right that shows the Omarchy bar (and lowers the taskbar) |
 | `showBarTools` | `true` | Mirror the Omarchy bar's right-hand widgets beside the clock while the bar is hidden |
 | `showPreviews` | `true` | Hover previews and tooltips |
 | `fontFamily` | `"sans-serif"` | Font for labels |
@@ -118,18 +131,24 @@ omarchy-shell win11-dock unpin org.gnome.Nautilus
 `Dock.qml` owns the config, the app model and the mirrored-bar-widget catalogue
 lookup, `Taskbar.qml` is the bar window with its popups, `TaskButton.qml` is one
 app button, `BarAdapter.qml` stands in for the Omarchy bar host so real bar
-widgets can render in the taskbar, and `BarWidgetHost.qml` loads one widget from
-the shell's catalogue. The shell hot-reloads the entry file, but edits to the
-other QML files only show up after `omarchy restart shell`.
+widgets can render in the taskbar, `BarWidgetHost.qml` loads one widget from
+the shell's catalogue, and `BarSwitchButton.qml` is the logo widget that swaps
+the Omarchy bar for the taskbar. The shell hot-reloads the entry file, but
+edits to the other QML files only show up after `omarchy restart shell`.
 
 ### Known limitations
 
+- The taskbar and the Omarchy bar are mutually exclusive — hiding the bar
+  always raises the taskbar and vice versa, whatever flipped the toggle. To
+  run with neither, disable the plugin.
 - The mirrored widgets are live instances of the shell's own bar widgets, so a
   widget that hides itself in the bar (for example Agents before its first
   usage scan) is hidden in the taskbar too.
-- Panel hotkeys and `omarchy-shell <widget> toggle` still route to the
-  (hidden) Omarchy bar's instance, so panels they open anchor to the top of the
-  screen. Clicking the icons in the taskbar opens panels above the taskbar.
+- Panel hotkeys and `omarchy-shell <widget> toggle` route to the Omarchy
+  bar's own instances (Quickshell keeps the first handler registered per
+  target), so panels they open anchor to the bar — at the top of the screen
+  while the bar is hidden. Clicking the icons in the taskbar opens panels
+  above the taskbar.
 
 ## Changelog
 

@@ -396,6 +396,13 @@ Item {
   readonly property string togglesPath: Quickshell.env("HOME") + "/.local/state/omarchy/toggles"
   property bool barHidden: false
 
+  // The two surfaces are mutually exclusive: the taskbar shows exactly while
+  // the Omarchy bar is hidden. The bar-off flag is the single source of
+  // truth, so every way of flipping it — this dock's switch button, the logo
+  // button Taskbarchy puts in the Omarchy bar, or `omarchy toggle bar` —
+  // swaps the two surfaces without any state that can drift.
+  readonly property bool taskbarHidden: !barHidden
+
   Process {
     id: barProbe
     running: true
@@ -419,6 +426,9 @@ Item {
     onTriggered: barProbe.running = true
   }
 
+  // Flips the bar-off flag. With the two surfaces mutually exclusive this
+  // swaps modes: the Omarchy bar comes back and the taskbar hides itself
+  // (the flag watcher does that part).
   function toggleBar() {
     Quickshell.execDetached(["omarchy", "toggle", "bar"])
     barProbeDelay.restart()

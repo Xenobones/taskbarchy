@@ -5,6 +5,24 @@ Notable changes to Taskbarchy. This project is a fork of
 
 ## [Unreleased]
 
+## [0.1.4] - 2026-11-05
+
+### Changed
+
+- The taskbar and the Omarchy bar are now mutually exclusive: hiding the bar
+  (any way you do it) raises the taskbar, and showing it lowers the taskbar.
+  The old both-visible coexistence is gone.
+- The taskbar's right-side button now switches surfaces: it shows the Omarchy
+  bar and the taskbar hides itself.
+
+### Added
+
+- A bar widget (`BarSwitchButton.qml`, registered as `Xenobones.taskbarchy`):
+  the Omarchy logo for the bar's left section. Left-click hides the bar and
+  raises the taskbar; right-click opens the root menu, keeping the old menu
+  button's role. Add it with
+  `omarchy bar put Xenobones.taskbarchy --section left --index 0`.
+
 ## [0.1.3] - 2026-11-04
 
 ### Changed

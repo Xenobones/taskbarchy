@@ -30,6 +30,9 @@ PanelWindow {
 
   screen: modelData
   color: "transparent"
+  // Mutually exclusive with the Omarchy bar: the window only maps while the
+  // bar is hidden (see Dock.taskbarHidden).
+  visible: !dock.taskbarHidden
   anchors { left: true; right: true; bottom: true }
   implicitHeight: dock.barHeight + dock.floatMargin
   exclusionMode: dock.autoHide ? ExclusionMode.Ignore : ExclusionMode.Auto
@@ -394,7 +397,8 @@ PanelWindow {
         }
       }
 
-      // Omarchy bar visibility
+      // Switch to the Omarchy bar: shows it and, because the two surfaces
+      // are mutually exclusive, the taskbar hides itself.
       Item {
         id: barToggle
         visible: win.dock.config.showBarToggle
