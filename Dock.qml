@@ -141,10 +141,24 @@ Item {
   ListModel { id: appModel }
   readonly property alias appModel: appModel
   property var appData: ({})
+  // address -> { title, class } as first announced by Hyprland.
+  property var initialWindows: ({})
 
   function lookupEntry(id) {
     if (!id) return null
     return DesktopEntries.byId(id) || DesktopEntries.heuristicLookup(id)
+  }
+
+  // Chrome's print preview opens as a second top-level window with the same
+  // appId as the browser. Give it a taskbar button of its own, still using the
+  // browser's icon, so it doesn't disappear behind the main Chrome button.
+  // It may announce itself as a child dialog or only via its "Print" title.
+  function isChromePrintPreview(toplevel) {
+    var appId = (toplevel.appId || "").toLowerCase()
+    var title = (toplevel.title || "").trim()
+    var isChrome = appId === "google-chrome" || appId.indexOf("chrome-") === 0
+    if (!isChrome) return false
+    return toplevel.parent != null || /^print( preview)?( - .*)?$/i.test(title)
   }
 
   function rebuild() {
@@ -160,6 +174,22 @@ Item {
       order.push(pinKey)
     }
 
+    // Hyprland reports each window's *initial* class/title in its openwindow
+    // event; the Wayland model only carries the current title. The EMR print
+    // preview starts as "about:blank - Google Chrome" and only later becomes
+    // the report title, so use the captured initial title to spot it.
+    var printToplevels = []
+    var hyprToplevels = Hyprland.toplevels.values
+    for (var h = 0; h < hyprToplevels.length; h++) {
+      var ht = hyprToplevels[h]
+      var info = initialWindows[ht.address] || ({})
+      var initialTitle = (info.title || "").toString()
+      var initialClass = (info.class || "").toString().toLowerCase()
+      var isChrome = initialClass === "google-chrome" || initialClass.indexOf("chrome-") === 0
+      if (isChrome && /^about:blank - Google Chrome$/i.test(initialTitle) && ht.wayland)
+        printToplevels.push(ht.wayland)
+    }
+
     var toplevels = ToplevelManager.toplevels.values
     for (var j = 0; j < toplevels.length; j++) {
       var toplevel = toplevels[j]
@@ -167,6 +197,7 @@ Item {
       if (!appId) continue
       var entry = lookupEntry(appId)
       var key = (entry ? entry.id : appId).toLowerCase()
+      if (isChromePrintPreview(toplevel) || printToplevels.indexOf(toplevel) >= 0) key += "::print"
       if (!data[key]) {
         data[key] = { key: key, pinId: entry ? entry.id : appId, appId: appId, entry: entry, pinned: false, windows: [] }
         order.push(key)
@@ -209,6 +240,62 @@ Item {
   }
 
   Connections {
+    target: Hyprland.toplevels
+    function onValuesChanged() { root.scheduleRebuild() }
+  }
+
+  // Seed the initial titles for windows that already existed when the shell
+  // started (the openwindow event only fires for future windows).
+  Process {
+    id: initialWindowsSeed
+    running: true
+    command: ["hyprctl", "clients", "-j"]
+    stdout: StdioCollector {
+      onStreamFinished: {
+        try {
+          var list = JSON.parse(text)
+          var map = {}
+          for (var i = 0; i < list.length; i++) {
+            var addr = (list[i].address || "").replace(/^0x/, "")
+            if (addr)
+              map[addr] = {
+                title: list[i].initialTitle || "",
+                class: list[i].initialClass || list[i].class || ""
+              }
+          }
+          root.initialWindows = map
+          root.scheduleRebuild()
+        } catch (e) {
+          console.log("taskbarchy: could not read window list", e)
+        }
+      }
+    }
+  }
+
+  Connections {
+    target: Hyprland
+    function onRawEvent(event) {
+      if (event.name === "openwindow") {
+        var parts = event.parse(4)
+        if (parts.length >= 4) {
+          var map = Object.assign({}, root.initialWindows)
+          map[parts[0]] = { title: parts[3], class: parts[2] }
+          root.initialWindows = map
+          root.scheduleRebuild()
+        }
+      } else if (event.name === "closewindow") {
+        var addr = (event.data || "").replace(/^0x/, "")
+        if (root.initialWindows[addr] !== undefined) {
+          var next = Object.assign({}, root.initialWindows)
+          delete next[addr]
+          root.initialWindows = next
+          root.scheduleRebuild()
+        }
+      }
+    }
+  }
+
+  Connections {
     target: DesktopEntries.applications
     function onValuesChanged() { root.scheduleRebuild() }
   }
@@ -220,6 +307,7 @@ Item {
       required property var modelData
       target: modelData
       function onAppIdChanged() { root.scheduleRebuild() }
+      function onTitleChanged() { root.scheduleRebuild() }
     }
   }
 

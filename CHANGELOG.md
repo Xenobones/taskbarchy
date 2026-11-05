@@ -5,6 +5,12 @@ Notable changes to Taskbarchy. This project is a fork of
 
 ## [Unreleased]
 
+### Added
+
+- Print-preview windows that reuse the browser's app id (including web apps
+  whose preview starts on `about:blank`) get their own taskbar button instead
+  of being grouped under the browser.
+
 ## [0.1.8] - 2026-11-05
 
 ### Changed
