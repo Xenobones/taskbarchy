@@ -55,7 +55,7 @@ Item {
       property bool showStart: true
       property string startCommand: "omarchy-menu toggle apps"
       // One of startIcons, or an icon name / absolute image path.
-      property string startIcon: "windows"
+      property string startIcon: "omarchy"
       // Shut down / restart button beside Start.
       property bool showPower: true
       property bool showClock: true

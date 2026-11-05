@@ -3,6 +3,13 @@
 Notable changes to Taskbarchy. This project is a fork of
 [maximxmoroz.win11-dock](https://github.com/maximxmoroz/omarchy-windows-dock).
 
+## [0.1.2] - 2026-11-04
+
+### Changed
+
+- The Start button now defaults to the Omarchy logo (`startIcon: "omarchy"`)
+  instead of the Windows logo. Existing settings files are unchanged.
+
 ## [0.1.1] - 2026-11-04
 
 ### Fixed

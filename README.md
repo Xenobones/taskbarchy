@@ -87,7 +87,7 @@ right-click menu on the bar edits the same file.
 | `showStart` | `true` | Show the Start button |
 | `showPower` | `true` | Show the power button (Shut down / Restart) |
 | `startCommand` | `"omarchy-menu toggle apps"` | Shell command the Start button runs |
-| `startIcon` | `"windows"` | `"windows"`, `"omarchy"`, `"arch"`, `"linux"`, `"grid"`, or any icon name / absolute image path |
+| `startIcon` | `"omarchy"` | `"omarchy"`, `"windows"`, `"arch"`, `"linux"`, `"grid"`, or any icon name / absolute image path |
 | `showClock` | `true` | Clock on the right (full-width bar only) |
 | `showBarToggle` | `true` | Button on the right that shows/hides the Omarchy bar |
 | `showBarTools` | `true` | Wifi/sound/battery buttons beside the clock while the Omarchy bar is hidden |
