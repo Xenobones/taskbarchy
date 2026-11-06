@@ -25,6 +25,7 @@ PanelWindow {
 
   // Right-click menu state.
   property var menuInfo: null
+  property var menuWindow: null
   property var menuItems: []
   property real menuCenterX: 0
 
@@ -91,6 +92,7 @@ PanelWindow {
     previewOpen.stop()
     previewButton = null
     menu.visible = false
+    menuWindow = null
   }
 
   function openMenu(items, info, centerX) {
@@ -121,6 +123,20 @@ PanelWindow {
       items.push({ id: "close", text: tr(info.windows.length > 1 ? "closeAll" : "close") })
     }
     openMenu(items, info, centerOf(button))
+  }
+
+  // Right-click on a thumbnail in the hover preview: actions for that one
+  // window. "Own workspace" only makes sense while the window shares its
+  // workspace with something else.
+  function openWindowMenu(button, toplevel) {
+    if (!toplevel) return
+    var items = []
+    if (dock.windowSharesWorkspace(toplevel))
+      items.push({ id: "windowOwnWorkspace", text: tr("ownWorkspace") })
+    items.push({ id: "windowClose", text: tr("close") })
+    var centerX = button ? centerOf(button) : win.width / 2
+    openMenu(items, null, centerX)
+    menuWindow = toplevel
   }
 
   function openSettingsMenu(centerX) {
@@ -179,6 +195,8 @@ PanelWindow {
     else if (id === "moveLeft") dock.movePin(info, -1)
     else if (id === "moveRight") dock.movePin(info, 1)
     else if (id === "ownWorkspace") dock.moveAppToOwnWorkspace(info)
+    else if (id === "windowOwnWorkspace") dock.moveWindowToOwnWorkspace(menuWindow)
+    else if (id === "windowClose") { if (menuWindow) menuWindow.close() }
     else if (id === "close") dock.closeAll(info)
     else if (id === "autoHide") config.autoHide = !config.autoHide
     else if (id === "floating") config.floating = !config.floating
@@ -192,6 +210,7 @@ PanelWindow {
     else if (id === "shutdown") dock.shutdown()
     else if (id === "restart") dock.reboot()
     else if (id === "editConfig") Quickshell.execDetached(["omarchy-launch-editor", dock.configPath])
+    menuWindow = null
   }
 
   Timer {
@@ -595,7 +614,12 @@ PanelWindow {
               id: thumbMouse
               anchors.fill: parent
               hoverEnabled: true
-              onClicked: {
+              acceptedButtons: Qt.LeftButton | Qt.RightButton
+              onClicked: function(event) {
+                if (event.button === Qt.RightButton) {
+                  win.openWindowMenu(win.previewButton, thumb.modelData)
+                  return
+                }
                 thumb.modelData.activate()
                 win.dismissPopups()
               }

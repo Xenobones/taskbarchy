@@ -5,6 +5,17 @@ Notable changes to Taskbarchy. This project is a fork of
 
 ## [Unreleased]
 
+## [0.1.9] - 2026-11-06
+
+### Added
+
+- Per-window "Own workspace". Right-clicking a thumbnail in the hover preview
+  offers it while that window shares its workspace with another window, and
+  moves just that window to the next empty workspace.
+- The taskbar groups icons per app *and* workspace: an app with windows on
+  different workspaces now gets one icon per workspace, each with its own
+  previews. Pinning and drag-reordering still act on the app once.
+
 ## [0.1.8] - 2026-11-05
 
 ### Changed

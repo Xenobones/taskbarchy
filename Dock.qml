@@ -138,6 +138,8 @@ Item {
 
   // appModel carries only the ordered keys so delegates survive window
   // open/close; the per-app data lives in appData and is looked up by key.
+  // Buttons are grouped per app *and* workspace: sending one window to its own
+  // workspace splits the app into two icons, each with its own previews.
   ListModel { id: appModel }
   readonly property alias appModel: appModel
   property var appData: ({})
@@ -147,31 +149,97 @@ Item {
     return DesktopEntries.byId(id) || DesktopEntries.heuristicLookup(id)
   }
 
+  // Hyprland's own toplevel for a Quickshell window: it carries the workspace
+  // and the Hyprland address, which the generic Toplevel does not.
+  function hyprToplevelFor(toplevel) {
+    if (!toplevel) return null
+    var toplevels = Hyprland.toplevels.values
+    for (var i = 0; i < toplevels.length; i++) {
+      if (toplevels[i].wayland === toplevel) return toplevels[i]
+    }
+    return null
+  }
+
+  // Workspace a toplevel sits on, from Hyprland's view. The raw IPC map covers
+  // the first frames after a window appears or moves.
+  function workspaceIdOf(toplevel) {
+    if (!toplevel) return 0
+    var hypr = hyprToplevelFor(toplevel)
+    if (hypr && hypr.workspace && hypr.workspace.id) return hypr.workspace.id
+    var ipc = (hypr && hypr.lastIpcObject) || toplevel.lastIpcObject || ({})
+    var raw = ipc.workspace || ({})
+    return Number(raw.id || 0)
+  }
+
+  // One button per (app, workspace). `primary` marks the app's first group so
+  // pinning/reordering keeps acting on the app exactly once.
+  function addAppButtons(data, order, group, pinId, pinned) {
+    var spaces = []
+    for (var ws in group.byWorkspace) spaces.push(Number(ws))
+    spaces.sort(function(a, b) { return a - b })
+    for (var i = 0; i < spaces.length; i++) {
+      var space = spaces[i]
+      var key = group.baseKey + "@" + space
+      data[key] = {
+        key: key, baseKey: group.baseKey, pinId: pinId, appId: group.appId,
+        entry: group.entry, pinned: pinned, primary: i === 0,
+        workspace: space, windows: group.byWorkspace[space]
+      }
+      order.push(key)
+    }
+  }
+
   function rebuild() {
     var data = {}
     var order = []
     var pinned = config.pinned
 
-    for (var i = 0; i < pinned.length; i++) {
-      var pinEntry = lookupEntry(pinned[i])
-      var pinKey = (pinEntry ? pinEntry.id : pinned[i]).toLowerCase()
-      if (data[pinKey]) continue
-      data[pinKey] = { key: pinKey, pinId: pinned[i], appId: pinned[i], entry: pinEntry, pinned: true, windows: [] }
-      order.push(pinKey)
-    }
-
+    // Gather running windows under their app, then under their workspace.
+    var groups = {}
+    var running = []
     var toplevels = ToplevelManager.toplevels.values
     for (var j = 0; j < toplevels.length; j++) {
       var toplevel = toplevels[j]
       var appId = toplevel.appId
       if (!appId) continue
       var entry = lookupEntry(appId)
-      var key = (entry ? entry.id : appId).toLowerCase()
-      if (!data[key]) {
-        data[key] = { key: key, pinId: entry ? entry.id : appId, appId: appId, entry: entry, pinned: false, windows: [] }
-        order.push(key)
+      var baseKey = (entry ? entry.id : appId).toLowerCase()
+      if (!groups[baseKey]) {
+        groups[baseKey] = { baseKey: baseKey, appId: appId, entry: entry, byWorkspace: {} }
+        running.push(baseKey)
       }
-      data[key].windows.push(toplevel)
+      var space = workspaceIdOf(toplevel)
+      var group = groups[baseKey]
+      if (!group.byWorkspace[space]) group.byWorkspace[space] = []
+      group.byWorkspace[space].push(toplevel)
+    }
+
+    // Pinned apps first, in pin order — every workspace group of a pinned app
+    // stays inside that app's slot. A pin that isn't running keeps a single
+    // empty button so its slot survives until it launches.
+    var placed = {}
+    for (var i = 0; i < pinned.length; i++) {
+      var pinEntry = lookupEntry(pinned[i])
+      var pinKey = (pinEntry ? pinEntry.id : pinned[i]).toLowerCase()
+      if (placed[pinKey]) continue
+      placed[pinKey] = true
+      if (groups[pinKey]) {
+        addAppButtons(data, order, groups[pinKey], pinned[i], true)
+      } else {
+        data[pinKey] = { key: pinKey, baseKey: pinKey, pinId: pinned[i], appId: pinned[i],
+                         entry: pinEntry, pinned: true, primary: true, workspace: 0, windows: [] }
+        order.push(pinKey)
+      }
+    }
+
+    // Then every other app, in the order its first window appeared.
+    for (var k = 0; k < running.length; k++) {
+      var runningKey = running[k]
+      if (placed[runningKey]) continue
+      placed[runningKey] = true
+      var runningGroup = groups[runningKey]
+      addAppButtons(data, order, runningGroup,
+        runningGroup.entry ? runningGroup.entry.id : runningGroup.appId, false)
     }
 
     appData = data
@@ -220,6 +288,19 @@ Item {
       required property var modelData
       target: modelData
       function onAppIdChanged() { root.scheduleRebuild() }
+    }
+  }
+
+  // Grouping is per workspace, and a window moved to another workspace has to
+  // split or merge its button. The generic Toplevel has no workspace signal,
+  // so take the move from Hyprland's event stream.
+  Connections {
+    target: Hyprland
+    function onRawEvent(event) {
+      var name = event ? String(event.name) : ""
+      if (name === "movewindow" || name === "movewindowv2"
+          || name === "createworkspace" || name === "destroyworkspace")
+        root.scheduleRebuild()
     }
   }
 
@@ -304,12 +385,20 @@ Item {
       for (var j = 0; j < toplevels.length; j++) {
         var key = appKey(workspaceToplevelAppId(toplevels[j]))
         if (!key) continue
-        if (key === info.key) mine = true
+        if (key === info.baseKey) mine = true
         else other = true
       }
       if (mine && other) return true
     }
     return false
+  }
+
+  // True when this one window sits on a workspace that holds any other window,
+  // whatever app it belongs to. A lone window already owns its workspace.
+  function windowSharesWorkspace(toplevel) {
+    var hypr = hyprToplevelFor(toplevel)
+    if (!hypr || !hypr.workspace || !hypr.workspace.toplevels) return false
+    return hypr.workspace.toplevels.values.length > 1
   }
 
   // Give the app a workspace of its own: every window moves, silently, to
@@ -330,6 +419,44 @@ Item {
       moved[cls] = true
       moveWindowClassToWorkspace(cls, workspace)
     }
+  }
+
+  // Give one window a workspace of its own. Targeted by address, not class,
+  // so the app's other windows stay put and the taskbar splits the app into
+  // two icons — one per workspace.
+  function moveWindowToOwnWorkspace(toplevel) {
+    if (!toplevel) return
+    var address = windowAddress(toplevel)
+    if (!address) return
+    var workspace = nextFreeWorkspace()
+    if (workspace <= 0) return
+    moveWindowAddressToWorkspace(address, workspace)
+  }
+
+  // Hyprland addresses windows as 0x…. Quickshell exposes the hex without the
+  // prefix, while movetoworkspacesilent wants the full form, so normalize it.
+  function windowAddress(toplevel) {
+    if (!toplevel) return ""
+    var hypr = hyprToplevelFor(toplevel)
+    var address = hypr && hypr.address ? String(hypr.address) : ""
+    if (!address) {
+      var ipc = toplevel.lastIpcObject || ({})
+      address = String(ipc.address || "")
+    }
+    if (address && address.indexOf("0x") !== 0) address = "0x" + address
+    return address
+  }
+
+  function moveWindowAddressToWorkspace(address, workspace) {
+    if (!address || !workspace) return
+    if (Hyprland.usingLua) {
+      Hyprland.dispatch("hl.dsp.window.move({ workspace = \"" + workspace
+        + "\", window = \"address:" + address + "\", follow = false })")
+    } else {
+      Hyprland.dispatch("movetoworkspacesilent " + workspace + ",address:" + address)
+    }
+    // Split the button now rather than waiting for the next event.
+    scheduleRebuild()
   }
 
   // Silent (no-follow) move of every window of one class; the Lua form
@@ -444,9 +571,14 @@ Item {
     var pinned = []
     for (var i = 0; i < appModel.count; i++) {
       var info = appData[appModel.get(i).key]
-      if (info && info.pinned) pinned.push(info.pinId)
+      // Only the app's first workspace group carries the pin; the extra
+      // groups of an app split across workspaces must not duplicate it.
+      if (!info || !info.pinned || !info.primary) continue
+      if (pinned.indexOf(info.pinId) < 0) pinned.push(info.pinId)
     }
     config.pinned = pinned
+    // Regroup the app's workspace buttons next to each other after a drop.
+    scheduleRebuild()
   }
 
   function runStart() {

@@ -138,7 +138,7 @@ Item {
       btn.pressX = mapToItem(btn.parent, event.x, event.y).x
     }
     onPositionChanged: function(event) {
-      if (!(pressedButtons & Qt.LeftButton) || !btn.info || !btn.info.pinned) return
+      if (!(pressedButtons & Qt.LeftButton) || !btn.info || !btn.info.pinned || !btn.info.primary) return
       var x = mapToItem(btn.parent, event.x, event.y).x
       if (!btn.dragging) {
         if (Math.abs(x - btn.pressX) < btn.dragThreshold) return

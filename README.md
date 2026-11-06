@@ -32,6 +32,8 @@ lowers the taskbar. It reads the same settings file as the original,
 - Hover a running app for live window thumbnails; click one to focus it, ✕ to close it
 - Drag pinned icons left and right to reorder them
 - Right-click an app: its desktop actions, new window, pin/unpin, reorder, close — plus "Own workspace" when it shares a workspace with another app, which silently moves its windows to an empty workspace
+- Right-click a window preview: "Own workspace" moves just that one window to an empty workspace, so the app shows up as a second icon there; "Close window" does what it says
+- An app with windows on different workspaces gets one icon per workspace, each with its own previews
 - Right-click the bar: auto-hide, floating dock, alignment, clock, previews, transparent background, bar height, icon size and Start icon
 - Full-width taskbar or a floating rounded dock
 - Follows the Omarchy theme, or use the stock Windows 11 dark/light colors
@@ -125,6 +127,7 @@ yourself.
 | Middle click | Open a new window |
 | Drag sideways | Reorder a pinned app |
 | Right click on an app | App menu |
+| Right click on a window preview | That window's menu: Own workspace, Close window |
 | Right click on the bar | Dock settings |
 | Click anywhere outside a menu | Closes the menu |
 | Hover | Window previews (name tooltip when the app isn't running) |
